@@ -5,35 +5,35 @@ import (
 	"os"
 	"text/tabwriter"
 
-	"github.com/shellrausch/gofuzzy/fuzz"
+	"github.com/shellrausch/gofuzzy/fuzz/client"
 )
 
-type tabCli struct{}
+type cli struct{}
 
 var tableWriter *tabwriter.Writer
 
-func (tabCli) init() {
+func (cli) init() {
 	fmt.Println(banner)
 	tableWriter = new(tabwriter.Writer)
 	tableWriter.Init(os.Stdout, 13, 0, 0, ' ', 0)
+
 	fmt.Fprintln(tableWriter, "---------------------------------------------------------------------------------")
-	fmt.Fprintln(tableWriter, "Chars(-hh) \t Words(-hw) \t Lines(-hl) \t Header(-hr) \t Code(-hc) \t Result")
+	fmt.Fprintln(tableWriter, "Chars(-hh) \t Words(-hw) \t Lines(-hl) \t Header(-hr) \t Code(-hc) \t Payload")
 	fmt.Fprintln(tableWriter, "---------------------------------------------------------------------------------")
 }
 
-func (tabCli) write(r *fuzz.Result) {
-	fmt.Fprint(tableWriter, fmt.Sprintf("%d \t %d \t %d \t %d", r.ContentLength, r.NumWords, r.NumLines, r.HeaderSize))
-	fmt.Fprint(tableWriter, fmt.Sprintf("\t %d", r.StatusCode))
-	fmt.Fprintln(tableWriter, fmt.Sprintf("\t %s", r.Result))
+func (cli) write(r *client.Result) {
+	o := fmt.Sprintf("%d \t %d \t %d \t %d \t %d \t %s", r.ContentLength, r.NumWords, r.NumLines, r.HeaderSize, r.StatusCode, r.Payload)
+	fmt.Fprintln(tableWriter, o)
 	tableWriter.Flush()
 }
 
-func (tabCli) writeProgress(p *fuzz.Progress) {
+func (cli) writeProgress(p *client.Progress) {
 	percent := int((float64(p.NumDoneRequests) / float64(p.NumApproxRequests)) * 100)
 	fmt.Printf("\r%30s\r~%d/%d (%d%%)\r", "", p.NumDoneRequests, p.NumApproxRequests, percent) // Output: ~123/9000 (2%)
 }
 
-func (tabCli) close() {
+func (cli) close() {
 	// Just clear the last progress output with some whitespaces.
 	fmt.Printf("\r%30s\r", "")
 }

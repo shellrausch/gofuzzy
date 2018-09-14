@@ -1,29 +1,31 @@
 package output
 
 import (
-	// Avoids naming collision with our struct name. Yes it's dirty.
-	jsonn "encoding/json"
+	jsn "encoding/json"
 	"fmt"
+	"io"
+	"log"
 
-	log "github.com/Sirupsen/logrus"
-	"github.com/shellrausch/gofuzzy/fuzz"
+	"github.com/shellrausch/gofuzzy/fuzz/client"
 )
 
-type json struct{}
+type json struct {
+	file io.Writer
+}
 
-var jsonResults []*fuzz.Result
+var jsonResults []*client.Result
 
-func (json) write(r *fuzz.Result) {
+func (json) write(r *client.Result) {
 	jsonResults = append(jsonResults, r)
 }
 
-func (json) close() {
-	json, err := jsonn.Marshal(jsonResults)
+func (j json) close() {
+	json, err := jsn.Marshal(jsonResults)
 	if err != nil {
 		log.Fatal(err)
 	}
-	fmt.Fprintln(outputFile, string(json))
+	fmt.Fprintln(j.file, string(json))
 }
 
-func (json) init()                          {}
-func (json) writeProgress(p *fuzz.Progress) {}
+func (json) init()                            {}
+func (json) writeProgress(p *client.Progress) {}
